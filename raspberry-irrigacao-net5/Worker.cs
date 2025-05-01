@@ -20,7 +20,7 @@ namespace raspberry_irrigacao_net5
             var input  = controller.OpenPin(GPIO_17, PinMode.Input);
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
-            Console.WriteLine("Estado inicial - Enchendo o reservatório!");
+            Console.WriteLine("|||||||||||||||||||||||||||||||||||||Estado inicial - Enchendo o reservatório!");
             TurnOnWater(output);
             
 
