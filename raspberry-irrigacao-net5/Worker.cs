@@ -42,11 +42,11 @@ namespace raspberry_irrigacao_net5
                 else 
                 {
                     _startedDate = DateTime.Now;
-                    Console.WriteLine("Ligado em {0}", _startedDate);
+                    Console.WriteLine("||||||||||||||||||Ligado em {0}", _startedDate);
                     TurnOnWater(output);
                 }
                 
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(2000, stoppingToken);
             }
         }
 
