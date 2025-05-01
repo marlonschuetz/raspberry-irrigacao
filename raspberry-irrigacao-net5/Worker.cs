@@ -17,7 +17,7 @@ namespace raspberry_irrigacao_net5
             const int GPIO_4 = 4;
             using GpioController controller = new GpioController();
 
-            var input  = controller.OpenPin(GPIO_17, PinMode.Input);
+            var input  = controller.OpenPin(GPIO_17, PinMode.Input, PinValue.Low);
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
             Console.WriteLine("Estado inicial - Enchendo o reservatório!");
