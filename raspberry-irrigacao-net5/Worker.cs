@@ -20,8 +20,13 @@ namespace raspberry_irrigacao_net5
             var input  = controller.OpenPin(GPIO_17, PinMode.Input);
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
-            Console.WriteLine("|||||||||||||||||||||||||||||||||||||Estado inicial - Enchendo o reservatório!");
-            TurnOnWater(output);
+            Console.WriteLine("Estado inicial - Enchendo o reservatório!");
+
+            do
+            {
+                output.Write(PinValue.High);
+            } while (input.Read() == PinValue.High);
+          
             
 
             while (!stoppingToken.IsCancellationRequested)
@@ -38,11 +43,16 @@ namespace raspberry_irrigacao_net5
                 if (input.Read() == PinValue.High)
                 {
                     TurnOffWater(output);
+                    _startedDate = null;
                 }
                 else 
                 {
-                    _startedDate = DateTime.Now;
-                    Console.WriteLine("||||||||||||||||||Ligado em {0}", _startedDate);
+                    if (_startedDate == null)
+                    {
+                        _startedDate = DateTime.Now;
+                        Console.WriteLine("||||||||||||||||||Ligado em {0}", _startedDate);
+                    }
+
                     TurnOnWater(output);
                 }
                 
