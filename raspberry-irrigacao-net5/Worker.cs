@@ -20,7 +20,9 @@ namespace raspberry_irrigacao_net5
             var input  = controller.OpenPin(GPIO_17, PinMode.Input);
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
+            Console.WriteLine("Estado inicial - Enchendo o reservatório!");
             TurnOnWater(output);
+            
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -38,8 +40,9 @@ namespace raspberry_irrigacao_net5
                     TurnOffWater(output);
                 }
                 else 
-                { 
+                {
                     _startedDate = DateTime.Now;
+                    Console.WriteLine("Ligado em {0}", _startedDate);
                     TurnOnWater(output);
                 }
                 
