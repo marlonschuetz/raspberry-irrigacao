@@ -24,6 +24,8 @@ namespace raspberry_irrigacao_net5
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                Console.WriteLine("Lendo sensor T1592... {0}", input.Read());
+
                 if (output.Read() == PinValue.High && DateTime.Now - _startedDate > TimeSpan.FromMinutes(1))
                 {
                     Console.WriteLine("TRAVA ACIONADA!!!");
