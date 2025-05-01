@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Device.Gpio;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,29 +14,29 @@ namespace raspberry_irrigacao_net5
 
         public Worker(ILogger<Worker> logger)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
             _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            const int SENSOR_PIN = 17;  // GPIO 17 – Entrada digital do sensor T1592
-            const int VALVE_PIN = 4;    // GPIO 4 – Saída para controlar válvula ou relé
+            Console.OutputEncoding = Encoding.UTF8; // Garante saída UTF-8 no console
 
+            const int SENSOR_PIN = 17;  // GPIO do sensor T1592
+            const int VALVE_PIN = 4;    // GPIO da válvula (saída para ligar água)
             using GpioController controller = new GpioController();
 
             controller.OpenPin(SENSOR_PIN, PinMode.Input);
             controller.OpenPin(VALVE_PIN, PinMode.Output);
-            controller.Write(VALVE_PIN, PinValue.Low); // Garante que inicia desligado
+            controller.Write(VALVE_PIN, PinValue.Low); // Inicia com a água desligada
 
             DateTime? ligouAguaEm = null;
 
-            while (!stoppingToken.IsCancellationRequested)
+            do
             {
-                var sensorValue = controller.Read(SENSOR_PIN); // LOW = úmido, HIGH = seco
-                _logger.LogInformation("Leitura do sensor T1592: {0}", sensorValue);
+                var leitura = controller.Read(SENSOR_PIN); // LOW = úmido, HIGH = seco
+                _logger.LogInformation("Leitura do sensor T1592: {0}", leitura);
 
-                if (sensorValue == PinValue.High) // Solo seco → ligar água
+                if (leitura == PinValue.High) // Solo seco
                 {
                     if (ligouAguaEm == null)
                     {
@@ -43,7 +44,7 @@ namespace raspberry_irrigacao_net5
                         ligouAguaEm = DateTime.Now;
                     }
                 }
-                else // Solo úmido → desligar água se estiver ligada
+                else // Solo molhado
                 {
                     if (ligouAguaEm != null)
                     {
@@ -52,16 +53,17 @@ namespace raspberry_irrigacao_net5
                     }
                 }
 
-                // Desliga após 5 minutos, mesmo que solo ainda esteja seco
-                if (ligouAguaEm != null && DateTime.Now - ligouAguaEm > TimeSpan.FromMinutes(5))
+                // Se passou de 5 minutos irrigando, força o desligamento e encerra app
+                if (ligouAguaEm != null && DateTime.Now - ligouAguaEm > TimeSpan.FromMinutes(2))
                 {
-                    _logger.LogWarning("Água desligada automaticamente após 5 minutos.");
+                    _logger.LogWarning("Água desligada automaticamente após 2 minutos.");
                     TurnOffWater(controller, VALVE_PIN);
-                    ligouAguaEm = null;
+                    break; // Encerra a aplicação
                 }
 
-                await Task.Delay(1000, stoppingToken); // Espera 1 segundo entre leituras
+                await Task.Delay(1000, stoppingToken);
             }
+            while (!stoppingToken.IsCancellationRequested);
         }
 
         private void TurnOnWater(GpioController controller, int pin)
