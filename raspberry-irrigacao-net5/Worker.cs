@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Device.Gpio;
@@ -13,46 +13,67 @@ namespace raspberry_irrigacao_net5
 
         public Worker(ILogger<Worker> logger)
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             _logger = logger;
         }
 
-        // T1592
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            const int GPIO_17 = 17; 
-            const int GPIO_4 = 4;
+            const int SENSOR_PIN = 17;  // GPIO 17 – Entrada digital do sensor T1592
+            const int VALVE_PIN = 4;    // GPIO 4 – Saída para controlar válvula ou relé
+
             using GpioController controller = new GpioController();
 
-            var input  = controller.OpenPin(GPIO_17, PinMode.Input);
-            var output = controller.OpenPin(GPIO_4, PinMode.Output);
+            controller.OpenPin(SENSOR_PIN, PinMode.Input);
+            controller.OpenPin(VALVE_PIN, PinMode.Output);
+            controller.Write(VALVE_PIN, PinValue.Low); // Garante que inicia desligado
 
-            do
+            DateTime? ligouAguaEm = null;
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                if (input.Read() == PinValue.Low)
+                var sensorValue = controller.Read(SENSOR_PIN); // LOW = úmido, HIGH = seco
+                _logger.LogInformation("Leitura do sensor T1592: {0}", sensorValue);
+
+                if (sensorValue == PinValue.High) // Solo seco → ligar água
                 {
-                    TurnOnWater(output);
+                    if (ligouAguaEm == null)
+                    {
+                        TurnOnWater(controller, VALVE_PIN);
+                        ligouAguaEm = DateTime.Now;
+                    }
+                }
+                else // Solo úmido → desligar água se estiver ligada
+                {
+                    if (ligouAguaEm != null)
+                    {
+                        TurnOffWater(controller, VALVE_PIN);
+                        ligouAguaEm = null;
+                    }
                 }
 
-                _logger.LogInformation("Lendo sensor T1592... {0}", input.Read());
+                // Desliga após 5 minutos, mesmo que solo ainda esteja seco
+                if (ligouAguaEm != null && DateTime.Now - ligouAguaEm > TimeSpan.FromMinutes(5))
+                {
+                    _logger.LogWarning("Água desligada automaticamente após 5 minutos.");
+                    TurnOffWater(controller, VALVE_PIN);
+                    ligouAguaEm = null;
+                }
 
-
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(1000, stoppingToken); // Espera 1 segundo entre leituras
             }
-            while (true || !stoppingToken.IsCancellationRequested/* se temporizador passar 5 min deve desligar*/);
         }
 
-        private void TurnOnWater(GpioPin output) 
+        private void TurnOnWater(GpioController controller, int pin)
         {
-            // Criar l�gica para iniciar um temporizador quando passar aqui pela primeira vez.
-
-            _logger.LogInformation("�gua ligada.");
-            output.Write(PinValue.High);
+            _logger.LogInformation("Água ligada.");
+            controller.Write(pin, PinValue.High);
         }
 
-        private void TurnOffWater(GpioPin output)
+        private void TurnOffWater(GpioController controller, int pin)
         {
-            _logger.LogInformation("�gua desligada.");
-            output.Write(PinValue.Low);
+            _logger.LogInformation("Água desligada.");
+            controller.Write(pin, PinValue.Low);
         }
     }
 }
