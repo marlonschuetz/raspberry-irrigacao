@@ -20,6 +20,8 @@ namespace raspberry_irrigacao_net5
             var input  = controller.OpenPin(GPIO_17, PinMode.Input);
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
+            TurnOnWater(output);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (output.Read() == PinValue.High && DateTime.Now - _startedDate > TimeSpan.FromMinutes(1))
@@ -29,20 +31,24 @@ namespace raspberry_irrigacao_net5
                     break;
                 }
 
-                if (input.Read() == PinValue.Low)
-                    TurnOnWater(output);
-                else 
+                if (input.Read() == PinValue.High)
+                {
                     TurnOffWater(output);
+                }
+                else 
+                { 
+                    _startedDate = DateTime.Now;
+                    TurnOnWater(output);
+                }
                 
                 await Task.Delay(1000, stoppingToken);
             }
         }
 
-        private void TurnOnWater(GpioPin output) 
+        private static void TurnOnWater(GpioPin output) 
         {
-            _startedDate = DateTime.Now;
             output.Write(PinValue.High);
-            Console.WriteLine("Água ligada. {0}", _startedDate);
+            Console.WriteLine("Água ligada. {0}", DateTime.Now);
         }
 
         private static void TurnOffWater(GpioPin output)
