@@ -25,7 +25,7 @@ namespace raspberry_irrigacao_net5
             do
             {
                 output.Write(PinValue.High);
-            } while (input.Read() == PinValue.High);
+            } while (input.Read() == PinValue.Low);
           
             
 
