@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using System;
-using System.Collections.Generic;
 using System.Device.Gpio;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,20 +16,43 @@ namespace raspberry_irrigacao_net5
             _logger = logger;
         }
 
+        // T1592
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            const int GPIO_17 = 17; 
+            const int GPIO_4 = 4;
+            using GpioController controller = new GpioController();
+
+            var input  = controller.OpenPin(GPIO_17, PinMode.Input);
+            var output = controller.OpenPin(GPIO_4, PinMode.Output);
+
+            do
             {
-                const int sensorPin = 17; // GPIO 17 (pino físico 11)
-                using GpioController controller = new GpioController();
+                if (input.Read() == PinValue.Low)
+                {
+                    TurnOnWater(output);
+                }
 
-                var pin = controller.OpenPin(sensorPin, PinMode.Input);
-
-                Console.WriteLine($"Lendo sensor T1592... {pin.Read()}");
+                _logger.LogInformation("Lendo sensor T1592... {0}", input.Read());
 
 
                 await Task.Delay(1000, stoppingToken);
             }
+            while (true || !stoppingToken.IsCancellationRequested/* se temporizador passar 5 min deve desligar*/);
+        }
+
+        private void TurnOnWater(GpioPin output) 
+        {
+            // Criar lógica para iniciar um temporizador quando passar aqui pela primeira vez.
+
+            _logger.LogInformation("Água ligada.");
+            output.Write(PinValue.High);
+        }
+
+        private void TurnOffWater(GpioPin output)
+        {
+            _logger.LogInformation("Água desligada.");
+            output.Write(PinValue.Low);
         }
     }
 }
