@@ -23,18 +23,14 @@ namespace raspberry_irrigacao_net5
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    const int sensorPin = 17; // GPIO 17 (pino físico 11)
-                    using GpioController controller = new GpioController();
+                const int sensorPin = 17; // GPIO 17 (pino físico 11)
+                using GpioController controller = new GpioController();
 
-                    var pin = controller.OpenPin(sensorPin, PinMode.Input);
+                var pin = controller.OpenPin(sensorPin, PinMode.Input);
 
-                    Console.WriteLine("Lendo sensor T1592... {sensorPin}", pin.Read());
+                Console.WriteLine($"Lendo sensor T1592... {pin.Read()}");
 
 
-                    await Task.Delay(1000, stoppingToken);
-                }
                 await Task.Delay(1000, stoppingToken);
             }
         }

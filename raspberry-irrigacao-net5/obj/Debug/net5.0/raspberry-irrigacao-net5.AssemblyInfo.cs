@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("raspberry-irrigacao-net5")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df2af8e217fd39083027a91313b97f0b115f1806")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a88d1912d8fca23b95949852ad266375b4f4368")]
 [assembly: System.Reflection.AssemblyProductAttribute("raspberry-irrigacao-net5")]
 [assembly: System.Reflection.AssemblyTitleAttribute("raspberry-irrigacao-net5")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
