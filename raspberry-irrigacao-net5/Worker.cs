@@ -62,14 +62,20 @@ namespace raspberry_irrigacao_net5
 
         private static void TurnOnWater(GpioPin output) 
         {
-            output.Write(PinValue.High);
-            Console.WriteLine("Água ligada. {0}", DateTime.Now);
+            if (output.Read() == PinValue.Low) 
+            {
+                output.Write(PinValue.High);
+                Console.WriteLine("Água ligada. {0}", DateTime.Now);
+            }
         }
 
         private static void TurnOffWater(GpioPin output)
         {
-            output.Write(PinValue.Low);
-            Console.WriteLine("Água desligada. {0}", DateTime.Now);
+            if (output.Read() == PinValue.High) 
+            {
+                output.Write(PinValue.Low);
+                Console.WriteLine("Água desligada. {0}", DateTime.Now);
+            }
         }
     }
 }
