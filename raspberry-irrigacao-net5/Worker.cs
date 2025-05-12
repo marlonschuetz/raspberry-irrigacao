@@ -18,6 +18,7 @@ namespace raspberry_irrigacao_net5
             using GpioController controller = new GpioController();
 
             var input  = controller.OpenPin(GPIO_17, PinMode.Input, PinValue.Low);
+            input.ValueChanged += (value, v) => Console.WriteLine($"{value}:{v.ChangeType}");
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
 
             Console.WriteLine("Estado inicial - Enchendo o reservatório!");
@@ -27,12 +28,8 @@ namespace raspberry_irrigacao_net5
                 output.Write(PinValue.High);
             } while (input.Read() == PinValue.Low);
           
-            
-
             while (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine("Lendo sensor T1592... {0}", input.Read());
-
                 if (output.Read() == PinValue.High && DateTime.Now - _startedDate > TimeSpan.FromMinutes(1))
                 {
                     Console.WriteLine("TRAVA ACIONADA!!!");
