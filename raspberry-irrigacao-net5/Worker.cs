@@ -19,14 +19,7 @@ namespace raspberry_irrigacao_net5
             using GpioController controller = new GpioController();
 
             var input  = controller.OpenPin(GPIO_17, PinMode.Input, PinValue.Low);
-    
             var output = controller.OpenPin(GPIO_4, PinMode.Output, PinValue.Low);
-
-            controller.RegisterCallbackForPinValueChangedEvent(
-                GPIO_17,
-                PinEventTypes.Rising | PinEventTypes.Falling,
-                (sender, args) => Console.WriteLine($"Valor mudou no pino {args.PinNumber}, tipo: {args.ChangeType}"));
-
 
             Console.WriteLine("Estado inicial - Enchendo o reservatório!");
 
